@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ultra Clicker Simulator</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <!-- ========== LOADING SCREEN ========== -->
+  <div id="loading-screen">
+    <div class="logo-circle">
+      <svg viewBox="0 0 80 80" width="90" height="90" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Mouse cursor icon -->
+        <polygon points="12,8 12,56 26,44 34,62 42,58 34,40 50,40" fill="white" stroke="#c084fc" stroke-width="2"/>
+      </svg>
+    </div>
+    <h1 class="game-title">Ultra Clicker<br/><span>Simulator</span></h1>
+    <div class="loading-bar-wrap">
+      <div class="loading-bar" id="loading-bar"></div>
+    </div>
+    <p class="loading-text">Loading your empire...</p>
+  </div>
+
+  <!-- ========== SETUP SCREEN (first launch) ========== -->
+  <div id="setup-screen" class="screen hidden">
+    <div class="setup-box">
+      <div class="logo-circle small">
+        <svg viewBox="0 0 80 80" width="50" height="50" fill="none">
+          <polygon points="12,8 12,56 26,44 34,62 42,58 34,40 50,40" fill="white" stroke="#c084fc" stroke-width="2"/>
+        </svg>
+      </div>
+      <h2>Welcome!</h2>
+      <p>Set up your player profile to begin.</p>
+      <input type="text" id="username-input" maxlength="16" placeholder="Enter your username..." />
+      <p class="avatar-label">Choose your avatar:</p>
+      <div class="avatar-grid">
+        <div class="avatar-option selected" data-avatar="🐱">🐱</div>
+        <div class="avatar-option" data-avatar="🦊">🦊</div>
+        <div class="avatar-option" data-avatar="🐸">🐸</div>
+        <div class="avatar-option" data-avatar="🐼">🐼</div>
+        <div class="avatar-option" data-avatar="🦁">🦁</div>
+        <div class="avatar-option" data-avatar="🐧">🐧</div>
+        <div class="avatar-option" data-avatar="🐨">🐨</div>
+        <div class="avatar-option" data-avatar="🐮">🐮</div>
+        <div class="avatar-option" data-avatar="🐹">🐹</div>
+        <div class="avatar-option" data-avatar="🐰">🐰</div>
+        <div class="avatar-option" data-avatar="🐻">🐻</div>
+        <div class="avatar-option" data-avatar="🐯">🐯</div>
+        <div class="avatar-option" data-avatar="🐺">🐺</div>
+        <div class="avatar-option" data-avatar="🦄">🦄</div>
+        <div class="avatar-option" data-avatar="🌸">🌸</div>
+        <div class="avatar-option" data-avatar="🌺">🌺</div>
+        <div class="avatar-option" data-avatar="🌻">🌻</div>
+        <div class="avatar-option" data-avatar="🌹">🌹</div>
+        <div class="avatar-option" data-avatar="🌷">🌷</div>
+        <div class="avatar-option" data-avatar="🪷">🪷</div>
+        <div class="avatar-option" data-avatar="🌼">🌼</div>
+        <div class="avatar-option" data-avatar="🌝">🌝</div>
+      </div>
+      <button class="btn-main" id="start-btn">Let's Go! 🚀</button>
+    </div>
+  </div>
+
+  <!-- ========== MAIN GAME ========== -->
+  <div id="game-screen" class="screen hidden">
+
+    <!-- TOP BAR -->
+    <header class="top-bar">
+      <div class="stat-chip" id="header-clicks">
+        <span class="chip-icon">👆</span>
+        <span id="click-display">0</span>
+      </div>
+      <div class="logo-small">
+        <svg viewBox="0 0 80 80" width="32" height="32" fill="none">
+          <polygon points="12,8 12,56 26,44 34,62 42,58 34,40 50,40" fill="white" stroke="#c084fc" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="stat-chip" id="header-coins">
+        <span class="chip-icon">🪙</span>
+        <span id="coin-display">0</span>
+      </div>
+    </header>
+
+    <!-- LEVEL BAR -->
+    <div class="level-bar-wrap">
+      <span id="level-label">Level 1</span>
+      <div class="level-bar-bg">
+        <div class="level-bar-fill" id="level-bar-fill"></div>
+      </div>
+      <span id="level-next">Next: 100 clicks</span>
+    </div>
+
+    <!-- MAIN CLICK AREA -->
+    <main class="click-area">
+      <p class="idle-hint" id="idle-hint">+1 idle click every 30s 💤</p>
+      <button class="click-btn" id="click-btn">
+        <svg viewBox="0 0 80 80" width="70" height="70" fill="none">
+          <polygon points="12,8 12,56 26,44 34,62 42,58 34,40 50,40" fill="white" stroke="#c084fc" stroke-width="2.5"/>
+        </svg>
+        <span class="click-label">CLICK!</span>
+      </button>
+      <div class="exchange-row">
+        <span class="exchange-info">10 clicks = 1 🪙</span>
+        <button class="btn-exchange" id="exchange-btn">Exchange All</button>
+      </div>
+    </main>
+
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-panel="main">
+        <span>🏠</span><small>Home</small>
+      </button>
+      <button class="nav-btn" data-panel="shop">
+        <span>🛒</span><small>Shop</small>
+      </button>
+      <button class="nav-btn" data-panel="minigames">
+        <span>🎮</span><small>Mini</small>
+      </button>
+      <button class="nav-btn" data-panel="quests">
+        <span>📋</span><small>Quests</small>
+      </button>
+      <button class="nav-btn" data-panel="races">
+        <span>🏁</span><small>Races</small>
+      </button>
+      <button class="nav-btn" data-panel="leaderboard">
+        <span>🏆</span><small>Ranks</small>
+      </button>
+      <button class="nav-btn" data-panel="profile">
+        <span>👤</span><small>Profile</small>
+      </button>
+    </nav>
+
+    <!-- ===== PANELS ===== -->
+
+    <!-- SHOP PANEL -->
+    <div class="panel hidden" id="panel-shop">
+      <div class="panel-header"><h2>🛒 Upgrade Shop</h2></div>
+      <div class="panel-body">
+        <div class="upgrade-card" id="upgrade-multiplier">
+          <div class="upgrade-info">
+            <h3>⚡ Click Multiplier</h3>
+            <p>Double your clicks per tap</p>
+            <span class="upgrade-level">Level: <b id="multi-level">0</b></span>
+          </div>
+          <button class="btn-upgrade" data-upgrade="multiplier">
+            <span class="upgrade-cost">🪙 50</span>
+          </button>
+        </div>
+        <div class="upgrade-card" id="upgrade-autoclicker">
+          <div class="upgrade-info">
+            <h3>🤖 Auto Clicker</h3>
+            <p>Earn clicks automatically (disabled in races)</p>
+            <span class="upgrade-level">Level: <b id="auto-level">0</b></span>
+          </div>
+          <button class="btn-upgrade" data-upgrade="autoclicker">
+            <span class="upgrade-cost">🪙 100</span>
+          </button>
+        </div>
+        <div class="upgrade-card" id="upgrade-minigame">
+          <div class="upgrade-info">
+            <h3>🎮 Mini-Game Bonus</h3>
+            <p>Boost mini-game rewards by 25%</p>
+            <span class="upgrade-level">Level: <b id="mini-level">0</b></span>
+          </div>
+          <button class="btn-upgrade" data-upgrade="minigame">
+            <span class="upgrade-cost">🪙 75</span>
+          </button>
+        </div>
+        <div class="upgrade-card" id="upgrade-coinboost">
+          <div class="upgrade-info">
+            <h3>💰 Coin Booster</h3>
+            <p>Get more coins when exchanging clicks</p>
+            <span class="upgrade-level">Level: <b id="coin-level">0</b></span>
+          </div>
+          <button class="btn-upgrade" data-upgrade="coinboost">
+            <span class="upgrade-cost">🪙 80</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MINI-GAMES PANEL -->
+    <div class="panel hidden" id="panel-minigames">
+      <div class="panel-header"><h2>🎮 Mini-Games</h2></div>
+      <div class="panel-body">
+        <div class="minigame-card" id="mg-frenzy">
+          <div class="mg-icon">⚡</div>
+          <div class="mg-info">
+            <h3>Click Frenzy</h3>
+            <p>Tap as fast as you can in 10 seconds!</p>
+            <span class="mg-reward">Reward: Clicks</span>
+          </div>
+          <button class="btn-play" data-game="frenzy">Play</button>
+        </div>
+        <div class="minigame-card" id="mg-rain">
+          <div class="mg-icon">🪙</div>
+          <div class="mg-info">
+            <h3>Coin Rain Catcher</h3>
+            <p>Catch coins, dodge the bombs!</p>
+            <span class="mg-reward">Reward: Coins</span>
+          </div>
+          <button class="btn-play" data-game="rain">Play</button>
+        </div>
+        <div class="minigame-card" id="mg-memory">
+          <div class="mg-icon">🧠</div>
+          <div class="mg-info">
+            <h3>Memory Flash</h3>
+            <p>Repeat the flashing sequence!</p>
+            <span class="mg-reward">Reward: Coins</span>
+          </div>
+          <button class="btn-play" data-game="memory">Play</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUESTS PANEL -->
+    <div class="panel hidden" id="panel-quests">
+      <div class="panel-header"><h2>📋 Daily Quests & Rewards</h2></div>
+      <div class="panel-body">
+        <div class="daily-reward-box" id="daily-reward-box">
+          <h3>🎁 Daily Login Reward</h3>
+          <p>Come back every day for free clicks & coins!</p>
+          <button class="btn-main" id="claim-daily-btn">Claim Today's Reward</button>
+          <span class="streak-info">🔥 Streak: <b id="streak-count">0</b> days</span>
+        </div>
+        <div class="quest-list">
+          <h3>Today's Quests</h3>
+          <div class="quest-item" id="quest-1">
+            <span class="quest-name">👆 Tap 500 times</span>
+            <span class="quest-progress" id="q1-progress">0 / 500</span>
+            <button class="btn-claim-quest" id="q1-claim" disabled>Claim</button>
+          </div>
+          <div class="quest-item" id="quest-2">
+            <span class="quest-name">🪙 Earn 50 coins</span>
+            <span class="quest-progress" id="q2-progress">0 / 50</span>
+            <button class="btn-claim-quest" id="q2-claim" disabled>Claim</button>
+          </div>
+          <div class="quest-item" id="quest-3">
+            <span class="quest-name">🎮 Complete a mini-game</span>
+            <span class="quest-progress" id="q3-progress">0 / 1</span>
+            <button class="btn-claim-quest" id="q3-claim" disabled>Claim</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RACE PANEL -->
+    <div class="panel hidden" id="panel-races">
+      <div class="panel-header"><h2>🏁 Races</h2></div>
+      <div class="panel-body">
+        <div class="race-info-box">
+          <p>⚠️ <b>Auto Clickers are disabled during races!</b> Raw tapping only.</p>
+          <p>Beat the bots by clicking the most in <b>30 seconds</b>. Winners earn bonus coins! 🪙</p>
+        </div>
+
+        <!-- Pre-race lobby -->
+        <div id="race-lobby">
+          <h3>Your Opponents</h3>
+          <div class="race-bots" id="race-bots">
+            <!-- Bots generated by JS -->
+          </div>
+          <button class="btn-main" id="race-start-btn">Start Race! 🏁</button>
+        </div>
+
+        <!-- Race in progress -->
+        <div id="race-arena" class="hidden">
+          <div class="race-timer-wrap">
+            <span>⏱ Time Left:</span>
+            <span class="race-timer" id="race-timer">30</span>
+          </div>
+          <div class="race-scoreboard" id="race-scoreboard">
+            <!-- Player + bots scores shown here -->
+          </div>
+          <button class="race-click-btn" id="race-click-btn">
+            TAP! 👆
+          </button>
+        </div>
+
+        <!-- Race result -->
+        <div id="race-result" class="hidden">
+          <div class="race-result-box" id="race-result-box">
+            <!-- Win/lose message shown here -->
+          </div>
+          <button class="btn-main" id="race-again-btn">Race Again! 🏁</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- LEADERBOARD PANEL -->
+    <div class="panel hidden" id="panel-leaderboard">
+      <div class="panel-header"><h2>🏆 Leaderboard</h2></div>
+      <div class="panel-body">
+        <div class="lb-tabs">
+          <button class="lb-tab active" data-tab="clicks">Most Clicks</button>
+          <button class="lb-tab" data-tab="coins">Most Coins</button>
+          <button class="lb-tab" data-tab="races">Races Won</button>
+        </div>
+        <div class="lb-list" id="lb-list">
+          <div class="lb-row lb-placeholder">
+            <span>🥇</span><span>—</span><span>—</span>
+          </div>
+          <div class="lb-row lb-placeholder">
+            <span>🥈</span><span>—</span><span>—</span>
+          </div>
+          <div class="lb-row lb-placeholder">
+            <span>🥉</span><span>—</span><span>—</span>
+          </div>
+          <p class="lb-note">🔄 Leaderboard resets weekly. Top players earn bonus coins!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE PANEL -->
+    <div class="panel hidden" id="panel-profile">
+      <div class="panel-header"><h2>👤 Player Profile</h2></div>
+      <div class="panel-body">
+        <div class="profile-card">
+          <div class="profile-avatar" id="profile-avatar">🐱</div>
+          <div class="profile-name" id="profile-name">Player</div>
+          <div class="profile-level" id="profile-level-tag">Level 1</div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-box"><span class="stat-val" id="stat-clicks">0</span><span class="stat-name">Total Clicks</span></div>
+          <div class="stat-box"><span class="stat-val" id="stat-coins">0</span><span class="stat-name">Total Coins</span></div>
+          <div class="stat-box"><span class="stat-val" id="stat-races">0</span><span class="stat-name">Races Won</span></div>
+          <div class="stat-box"><span class="stat-val" id="stat-level">1</span><span class="stat-name">Level</span></div>
+        </div>
+        <div class="achievements-section">
+          <h3>🏅 Achievements</h3>
+          <div class="achievements-grid" id="achievements-grid">
+            <div class="badge locked" id="badge-1000clicks" title="1,000 Clicks">👆<small>1K Clicks</small></div>
+            <div class="badge locked" id="badge-100coins" title="100 Coins">🪙<small>100 Coins</small></div>
+            <div class="badge locked" id="badge-firstrace" title="Win a Race">🏁<small>First Race</small></div>
+            <div class="badge locked" id="badge-allquests" title="Complete All Quests">📋<small>Quest Master</small></div>
+            <div class="badge locked" id="badge-level10" title="Reach Level 10">⭐<small>Level 10</small></div>
+            <div class="badge locked" id="badge-minigame" title="Win a Mini-Game">🎮<small>Game Winner</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MINI-GAME MODALS -->
+
+    <!-- Click Frenzy -->
+    <div class="modal hidden" id="modal-frenzy">
+      <div class="modal-box">
+        <h2>⚡ Click Frenzy</h2>
+        <p>Tap as fast as you can!</p>
+        <div class="mg-timer" id="frenzy-timer">10</div>
+        <div class="mg-score">Taps: <b id="frenzy-score">0</b></div>
+        <button class="btn-main" id="frenzy-start-btn">Start!</button>
+        <button class="btn-close" id="frenzy-close">✕</button>
+      </div>
+    </div>
+
+    <!-- Coin Rain Catcher -->
+    <div class="modal hidden" id="modal-rain">
+      <div class="modal-box">
+        <h2>🪙 Coin Rain Catcher</h2>
+        <div class="rain-stats">
+          <span>🪙 Caught: <b id="rain-caught">0</b></span>
+          <span>⏱ <b id="rain-timer">20</b>s</span>
+        </div>
+        <div class="rain-arena" id="rain-arena"></div>
+        <button class="btn-main" id="rain-start-btn">Start!</button>
+        <button class="btn-close" id="rain-close">✕</button>
+      </div>
+    </div>
+
+    <!-- Memory Flash -->
+    <div class="modal hidden" id="modal-memory">
+      <div class="modal-box">
+        <h2>🧠 Memory Flash</h2>
+        <p id="memory-instruction">Watch the pattern, then repeat it!</p>
+        <div class="memory-grid" id="memory-grid">
+          <div class="mem-btn" data-index="0"></div>
+          <div class="mem-btn" data-index="1"></div>
+          <div class="mem-btn" data-index="2"></div>
+          <div class="mem-btn" data-index="3"></div>
+        </div>
+        <div class="mg-score">Round: <b id="memory-round">1</b></div>
+        <button class="btn-main" id="memory-start-btn">Start!</button>
+        <button class="btn-close" id="memory-close">✕</button>
+      </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div class="toast hidden" id="toast"></div>
+
+    <!-- FLOATING CLICK POP -->
+    <div class="click-pop hidden" id="click-pop">+1</div>
+
+  </div><!-- end game-screen -->
+
+  <script src="app.js"></script>
+</body>
+            </html>
+          
