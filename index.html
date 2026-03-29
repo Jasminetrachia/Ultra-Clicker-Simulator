@@ -120,7 +120,7 @@
 
     <!-- MAIN CLICK AREA -->
     <main class="click-area">
-      <p class="idle-hint">+1 idle click every 30s 💤</p>
+      <p class="idle-hint">Automatically gain 1 click every 30 seconds</p>
       <button class="click-btn" id="click-btn">
         <svg viewBox="0 0 80 80" width="70" height="70" fill="none">
           <polygon points="12,8 12,56 26,44 34,62 42,58 34,40 50,40" fill="white" stroke="#c084fc" stroke-width="2.5"/>
@@ -321,11 +321,6 @@
           <h2>🏆 Leaderboard</h2>
           <button class="lb-reward-btn" id="lb-reward-btn">❓</button>
         </div>
-        <!-- Weekly Reset Timer -->
-        <div class="lb-timer-wrap">
-          <span class="lb-timer-label">🔄 Resets in:</span>
-          <span class="lb-timer" id="lb-timer">— — — —</span>
-        </div>
       </div>
       <!-- Reward Info Panel -->
       <div class="lb-reward-panel hidden" id="lb-reward-panel">
@@ -338,6 +333,11 @@
         <button class="btn-close-panel" id="lb-reward-close">✕ Close</button>
       </div>
       <div class="panel-body">
+        <!-- Timer fully visible inside panel body -->
+        <div class="lb-timer-box">
+          <span class="lb-timer-label">🔄 Resets in:</span>
+          <span class="lb-timer" id="lb-timer">calculating...</span>
+        </div>
         <div class="lb-tabs">
           <button class="lb-tab active" data-tab="clicks">Most Clicks</button>
           <button class="lb-tab" data-tab="coins">Most Coins</button>
@@ -467,11 +467,4 @@
 
     <!-- TOAST -->
     <div class="toast hidden" id="toast"></div>
-    <!-- CLICK POP -->
-    <div class="click-pop hidden" id="click-pop">+1</div>
-
-  </div><!-- end game-screen -->
-
-  <script src="app.js"></script>
-</body>
-</html>
+    <!-- C
