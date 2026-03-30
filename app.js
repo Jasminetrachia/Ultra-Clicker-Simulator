@@ -463,5 +463,301 @@ function updateShopCosts() {
   });
 }
 
-// ======= END OF PART 1 — PASTE PART 2 DIRECTLY BELOW =======
-```
+function resetDailyQuestsIfNeeded() {
+  const today=new Date().toDateString();
+  if(state.quests.lastReset!==today){
+    state.quests={
+      q1:{done:false,claimed:false}, q2:{done:false,claimed:false},
+      q3:{done:false,claimed:false}, lastReset:today
+    };
+    saveState();
+  }
+}
+
+function setupQuests() {
+  const db=document.getElementById('claim-daily-btn');
+  if(db){
+    db.addEventListener('click',()=>{
+      initAudio();
+      const today=new Date().toDateString();
+      const yesterday=new Date(Date.now()-86400000).toDateString();
+      if(state.daily.lastClaim===today){showToast('Already claimed! Come back tomorrow 🌙'); playError(); return;}
+      state.daily.streak=(state.daily.lastClaim===yesterday)?state.daily.streak+1:1;
+      state.daily.lastClaim=today;
+      const reward=20+state.daily.streak*5;
+      state.coins+=reward; state.totalCoins+=reward;
+      playSuccess(); showToast('🎁 +'+reward+' coins! Streak: '+state.daily.streak+' days 🔥');
+      const sc=document.getElementById('streak-count'); if(sc) sc.textContent=state.daily.streak;
+      updateUI(); saveState();
+    });
+  }
+  const sc=document.getElementById('streak-count'); if(sc) sc.textContent=state.daily.streak;
+  const q1=document.getElementById('q1-claim');
+  const q2=document.getElementById('q2-claim');
+  const q3=document.getElementById('q3-claim');
+  if(q1) q1.addEventListener('click',()=>{initAudio(); claimQuest('q1',50,'clicks');});
+  if(q2) q2.addEventListener('click',()=>{initAudio(); claimQuest('q2',20,'coins');});
+  if(q3) q3.addEventListener('click',()=>{initAudio(); claimQuest('q3',15,'coins');});
+}
+
+function claimQuest(id,reward,type) {
+  if(!state.quests[id].done||state.quests[id].claimed) return;
+  state.quests[id].claimed=true;
+  if(type==='clicks'){state.clicks+=reward; state.totalClicks+=reward;}
+  if(type==='coins'){state.coins+=reward; state.totalCoins+=reward;}
+  playSuccess(); showToast('✅ Quest claimed! +'+reward+' '+type+'!');
+  updateUI(); checkAllQuests(); saveState();
+}
+
+function updateQuestProgress() {
+  if(!state.quests.q1.claimed){
+    const p=Math.min(state.totalClicks,500);
+    const el=document.getElementById('q1-progress'); if(el) el.textContent=formatNum(p)+' / 500';
+    if(p>=500&&!state.quests.q1.done){state.quests.q1.done=true; const b=document.getElementById('q1-claim'); if(b) b.disabled=false;}
+  }
+  if(!state.quests.q2.claimed){
+    const p=Math.min(state.totalCoins,50);
+    const el=document.getElementById('q2-progress'); if(el) el.textContent=p+' / 50';
+    if(p>=50&&!state.quests.q2.done){state.quests.q2.done=true; const b=document.getElementById('q2-claim'); if(b) b.disabled=false;}
+  }
+  if(!state.quests.q3.claimed){
+    const p=Math.min(state.minigamesCompleted,1);
+    const el=document.getElementById('q3-progress'); if(el) el.textContent=p+' / 1';
+    if(p>=1&&!state.quests.q3.done){state.quests.q3.done=true; const b=document.getElementById('q3-claim'); if(b) b.disabled=false;}
+  }
+}
+
+function updateQuestUI() {
+  updateQuestProgress();
+  if(state.quests.q1.claimed){const b=document.getElementById('q1-claim'); if(b){b.textContent='✓ Done';b.disabled=true;}}
+  if(state.quests.q2.claimed){const b=document.getElementById('q2-claim'); if(b){b.textContent='✓ Done';b.disabled=true;}}
+  if(state.quests.q3.claimed){const b=document.getElementById('q3-claim'); if(b){b.textContent='✓ Done';b.disabled=true;}}
+}
+
+function checkAllQuests() {
+  if(state.quests.q1.claimed&&state.quests.q2.claimed&&state.quests.q3.claimed&&!state.achievements.allquests){
+    state.achievements.allquests=true;
+    showAchievement('Quest Master 📋');
+    checkAchievements(); saveState();
+  }
+}
+
+function checkAchievements() {
+  if(state.totalClicks>=1000&&!state.achievements.clicks1000){state.achievements.clicks1000=true; showAchievement('1,000 Clicks! 👆');}
+  if(state.totalCoins>=100&&!state.achievements.coins100){state.achievements.coins100=true; showAchievement('100 Coins! 🪙');}
+  if(state.level>=10&&!state.achievements.level10){state.achievements.level10=true; showAchievement('Level 10 Reached! ⭐');}
+  updateAchievements(); saveState();
+}
+
+function updateAchievements() {
+  const map={
+    'badge-1000clicks':state.achievements.clicks1000,
+    'badge-100coins':state.achievements.coins100,
+    'badge-firstrace':state.achievements.firstrace,
+    'badge-allquests':state.achievements.allquests,
+    'badge-level10':state.achievements.level10,
+    'badge-minigame':state.achievements.minigame,
+  };
+  for(const [id,unlocked] of Object.entries(map)){
+    const el=document.getElementById(id); if(!el) continue;
+    el.classList.toggle('locked',!unlocked);
+    el.classList.toggle('unlocked',unlocked);
+  }
+}
+
+function setupMinigames() {
+  document.querySelectorAll('.btn-play').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      initAudio(); playClick();
+      const game=btn.dataset.game;
+      document.getElementById('modal-'+game).classList.remove('hidden');
+      if(game==='frenzy') resetFrenzy();
+      if(game==='rain')   resetRain();
+      if(game==='memory') resetMemory();
+    });
+  });
+  document.getElementById('frenzy-close').addEventListener('click',()=>{closeFrenzy(); playClick();});
+  document.getElementById('rain-close').addEventListener('click',()=>{closeRain(); playClick();});
+  document.getElementById('memory-close').addEventListener('click',()=>{closeMemory(); playClick();});
+}
+
+function onMinigameComplete() {
+  state.minigamesCompleted++;
+  if(!state.achievements.minigame){state.achievements.minigame=true; showAchievement('Game Winner! 🎮');}
+  updateQuestProgress(); checkAchievements(); saveState();
+}
+
+let frenzyActive=false, frenzyScore=0, frenzyTime=10, frenzyInterval=null;
+
+function resetFrenzy() {
+  clearInterval(frenzyInterval);
+  frenzyActive=false; frenzyScore=0; frenzyTime=10;
+  document.getElementById('frenzy-timer').textContent='10';
+  document.getElementById('frenzy-score').textContent='0';
+  const old=document.getElementById('frenzy-start-btn');
+  const btn=old.cloneNode(true); btn.textContent='Start!'; btn.classList.remove('hidden'); btn.disabled=false;
+  old.parentNode.replaceChild(btn,old);
+  btn.addEventListener('click',()=>{
+    if(!frenzyActive){
+      frenzyActive=true; btn.textContent='TAP! 👆';
+      frenzyInterval=setInterval(()=>{
+        frenzyTime=Math.max(0,frenzyTime-1);
+        document.getElementById('frenzy-timer').textContent=frenzyTime;
+        if(frenzyTime<=0){
+          clearInterval(frenzyInterval); frenzyActive=false; btn.disabled=true;
+          state.clicks+=frenzyScore; state.totalClicks+=frenzyScore;
+          playSuccess(); showToast('⚡ Storm over! +'+frenzyScore+' clicks!');
+          onMinigameComplete(); updateUI();
+          setTimeout(()=>{
+            btn.textContent='Play Again!'; btn.disabled=false;
+            frenzyTime=10; frenzyScore=0;
+            document.getElementById('frenzy-timer').textContent='10';
+            document.getElementById('frenzy-score').textContent='0';
+            frenzyActive=false;
+          },1000);
+        }
+      },1000);
+    } else if(frenzyTime>0){
+      frenzyScore++;
+      document.getElementById('frenzy-score').textContent=frenzyScore;
+      playClick();
+    }
+  });
+}
+
+function closeFrenzy(){clearInterval(frenzyInterval); frenzyActive=false; document.getElementById('modal-frenzy').classList.add('hidden');}
+
+let rainActive=false, rainCaught=0, rainTime=20, rainInterval=null, rainSpawnInterval=null;
+
+function resetRain() {
+  clearInterval(rainInterval); clearInterval(rainSpawnInterval);
+  rainActive=false; rainCaught=0; rainTime=20;
+  document.getElementById('rain-caught').textContent='0';
+  document.getElementById('rain-timer').textContent='20';
+  document.getElementById('rain-arena').innerHTML='';
+  const old=document.getElementById('rain-start-btn');
+  const btn=old.cloneNode(true); btn.textContent='Start!'; btn.classList.remove('hidden');
+  old.parentNode.replaceChild(btn,old);
+  btn.addEventListener('click',()=>{
+    if(rainActive) return;
+    rainActive=true; btn.classList.add('hidden');
+    rainInterval=setInterval(()=>{
+      rainTime=Math.max(0,rainTime-1);
+      document.getElementById('rain-timer').textContent=rainTime;
+      if(rainTime<=0){
+        clearInterval(rainInterval); clearInterval(rainSpawnInterval);
+        rainActive=false; document.getElementById('rain-arena').innerHTML='';
+        const boost=1+(state.upgrades.minigame*0.25);
+        const reward=Math.max(0,Math.floor(rainCaught*boost));
+        state.coins+=reward; state.totalCoins+=reward;
+        playSuccess(); showToast('🪙 Rush over! +'+reward+' coins!');
+        onMinigameComplete(); updateUI();
+        btn.textContent='Play Again!'; btn.classList.remove('hidden');
+      }
+    },1000);
+    rainSpawnInterval=setInterval(spawnRainItem,650);
+  });
+}
+
+function spawnRainItem() {
+  const arena=document.getElementById('rain-arena');
+  if(!arena||!rainActive||rainTime<=0) return;
+  const isBomb=Math.random()<0.22;
+  const item=document.createElement('div');
+  item.classList.add('rain-item');
+  item.textContent=isBomb?'💣':'🪙';
+  item.style.left=(Math.random()*82)+'%';
+  item.style.top='-30px'; item.style.position='absolute';
+  arena.appendChild(item);
+  let clicked=false;
+  item.addEventListener('click',e=>{
+    e.stopPropagation();
+    if(!rainActive||rainTime<=0||clicked) return;
+    clicked=true;
+    if(isBomb){rainCaught=Math.max(0,rainCaught-5); showToast('💣 Bomb! -5 coins!'); playError();}
+    else{rainCaught++; playClick();}
+    document.getElementById('rain-caught').textContent=rainCaught;
+    item.remove();
+  });
+  let top=-30; const speed=3+Math.random()*2;
+  const fall=setInterval(()=>{
+    if(!rainActive||rainTime<=0){clearInterval(fall); if(item.parentNode) item.remove(); return;}
+    top+=speed; item.style.top=top+'px';
+    if(top>200){clearInterval(fall); if(item.parentNode) item.remove();}
+  },40);
+}
+
+function closeRain(){
+  clearInterval(rainInterval); clearInterval(rainSpawnInterval);
+  rainActive=false; document.getElementById('rain-arena').innerHTML='';
+  document.getElementById('modal-rain').classList.add('hidden');
+}
+
+let memSeq=[], memIn=[], memRound=1, memOk=false;
+
+function resetMemory() {
+  memSeq=[]; memIn=[]; memRound=1; memOk=false;
+  document.getElementById('memory-round').textContent='1';
+  document.getElementById('memory-instruction').textContent='Watch the buttons light up, then tap them in the same order!';
+  const old=document.getElementById('memory-start-btn');
+  const btn=old.cloneNode(true); btn.textContent='Start!'; btn.classList.remove('hidden');
+  old.parentNode.replaceChild(btn,old);
+  document.querySelectorAll('.mem-btn').forEach((tile,i)=>{
+    const nt=tile.cloneNode(true); tile.parentNode.replaceChild(nt,tile);
+    nt.addEventListener('click',()=>{
+      if(!memOk) return;
+      playClick(); nt.classList.add('flash');
+      setTimeout(()=>nt.classList.remove('flash'),280);
+      memIn.push(i); checkMemIn();
+    });
+  });
+  btn.addEventListener('click',()=>{btn.classList.add('hidden'); nextMemRound();});
+}
+
+function nextMemRound() {
+  memIn=[]; memOk=false;
+  memSeq.push(Math.floor(Math.random()*4));
+  document.getElementById('memory-round').textContent=memRound;
+  document.getElementById('memory-instruction').textContent='Watch carefully... 👀';
+  flashMem(()=>{memOk=true; document.getElementById('memory-instruction').textContent='Your turn! Tap in order! 👆';});
+}
+
+function flashMem(cb) {
+  const tiles=document.querySelectorAll('.mem-btn');
+  let i=0;
+  const go=()=>{
+    if(i>0) tiles[memSeq[i-1]].classList.remove('flash');
+    if(i>=memSeq.length){cb(); return;}
+    tiles[memSeq[i]].classList.add('flash'); i++;
+    setTimeout(go,700);
+  };
+  setTimeout(go,400);
+}
+
+function checkMemIn() {
+  const idx=memIn.length-1;
+  const tiles=document.querySelectorAll('.mem-btn');
+  if(memIn[idx]!==memSeq[idx]){
+    if(tiles[memIn[idx]]){tiles[memIn[idx]].classList.add('wrong'); setTimeout(()=>tiles[memIn[idx]].classList.remove('wrong'),400);}
+    playError(); memOk=false;
+    const boost=1+(state.upgrades.minigame*0.25);
+    const coinR=Math.floor((memRound-1)*5*boost);
+    const clickR=Math.floor((memRound-1)*3);
+    if(coinR>0){state.coins+=coinR; state.totalCoins+=coinR;}
+    if(clickR>0){state.clicks+=clickR; state.totalClicks+=clickR;}
+    document.getElementById('memory-instruction').textContent='❌ Wrong! Game over!';
+    showToast('🧠 Round '+memRound+(coinR>0?'. +'+coinR+' coins & +'+clickR+' clicks!':'!'));
+    onMinigameComplete(); updateUI();
+    setTimeout(()=>resetMemory(),1600);
+    return;
+  }
+  if(tiles[memIn[idx]]){tiles[memIn[idx]].classList.add('correct'); setTimeout(()=>tiles[memIn[idx]].classList.remove('correct'),300);}
+  if(memIn.length===memSeq.length){
+    memOk=false; memRound++; playSuccess();
+    document.getElementById('memory-instruction').textContent='✅ Correct! Next round...';
+    setTimeout(nextMemRound,1000);
+  }
+}
+
+function closeMemory(){memOk=false; document.getElementById('modal-memory').classList.add('hidden');}
+
