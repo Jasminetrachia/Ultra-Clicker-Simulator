@@ -761,3 +761,276 @@ function checkMemIn() {
 
 function closeMemory(){memOk=false; document.getElementById('modal-memory').classList.add('hidden');}
 
+const botNames=[
+  'ClickMaster99','TurboFinger','SpeedTapper','QuickClick','FingerFlash',
+  'RapidTap42','ClickZilla','NinjaClicker','SwiftPress','TapStorm',
+  'ClickBlitz','HyperTap','MegaFinger','UltraPress','ClickBeast',
+  'TapKing','FingerStorm','ClickRush','PressBot','SwiftClick',
+];
+const botEmoji={slow:'🐢',medium:'🐇',fast:'🐆'};
+
+let raceBots=[], raceActive=false, racePlayerClicks=0, raceTimer=30;
+let raceTimerInterval=null, raceBotIntervals=[];
+
+function getBotTypes() {
+  const lvl=state.level;
+  const count=Math.floor(Math.random()*2)+2;
+  const pool=[];
+  if(lvl<5){
+    for(let i=0;i<count;i++) pool.push('slow');
+  } else if(lvl<10){
+    for(let i=0;i<count;i++) pool.push(Math.random()>0.4?'slow':'medium');
+  } else if(lvl<20){
+    for(let i=0;i<count;i++){const r=Math.random(); pool.push(r<0.33?'slow':r<0.66?'medium':'fast');}
+  } else {
+    for(let i=0;i<count;i++){const r=Math.random(); pool.push(r<0.2?'slow':r<0.5?'medium':'fast');}
+  }
+  return pool;
+}
+
+function botSpeed(type){
+  if(type==='slow')   return Math.floor(Math.random()*2)+3;
+  if(type==='medium') return Math.floor(Math.random()*3)+6;
+  if(type==='fast')   return Math.floor(Math.random()*3)+12;
+  return 3;
+}
+
+function setupRace() {
+  generateBots();
+  document.getElementById('race-start-btn').addEventListener('click',()=>{initAudio(); playClick(); startRace();});
+  document.getElementById('race-click-btn').addEventListener('click',()=>{
+    if(!raceActive||raceTimer<=0) return;
+    racePlayerClicks++; playClick(); updateRaceScoreboard();
+  });
+  document.getElementById('race-again-btn').addEventListener('click',()=>{
+    initAudio(); playClick();
+    generateBots();
+    document.getElementById('race-result').classList.add('hidden');
+    document.getElementById('coin-popup').classList.add('hidden');
+    document.getElementById('race-lobby').classList.remove('hidden');
+  });
+}
+
+function generateBots() {
+  raceBots=[];
+  const types=getBotTypes();
+  const used=new Set();
+  types.forEach(type=>{
+    let name;
+    do{name=botNames[Math.floor(Math.random()*botNames.length)];}while(used.has(name));
+    used.add(name);
+    raceBots.push({name,avatar:botEmoji[type],speed:botSpeed(type),type,clicks:0});
+  });
+  const el=document.getElementById('race-bots'); if(!el) return;
+  el.innerHTML='';
+  raceBots.forEach(bot=>{
+    const card=document.createElement('div'); card.classList.add('race-bot-card');
+    const lbl=bot.type==='slow'?'Slow 🐢':bot.type==='medium'?'Medium 🐇':'Fast 🐆';
+    card.innerHTML=`<div class="race-bot-avatar">${bot.avatar}</div><div><div class="race-bot-name">${bot.name}</div><div class="race-bot-speed">Speed: ${lbl}</div></div>`;
+    el.appendChild(card);
+  });
+}
+
+function startRace() {
+  raceActive=true; racePlayerClicks=0; raceTimer=30;
+  raceBots.forEach(b=>b.clicks=0);
+  document.getElementById('race-lobby').classList.add('hidden');
+  document.getElementById('race-result').classList.add('hidden');
+  document.getElementById('coin-popup').classList.add('hidden');
+  document.getElementById('race-arena').classList.remove('hidden');
+  document.getElementById('race-timer').textContent='30';
+  buildRaceScoreboard();
+  raceBotIntervals=raceBots.map(bot=>
+    setInterval(()=>{if(raceActive&&raceTimer>0){bot.clicks+=bot.speed; updateRaceScoreboard();}},1000)
+  );
+  raceTimerInterval=setInterval(()=>{
+    raceTimer=Math.max(0,raceTimer-1);
+    document.getElementById('race-timer').textContent=raceTimer;
+    if(raceTimer<=0) endRace();
+  },1000);
+}
+
+function buildRaceScoreboard() {
+  const board=document.getElementById('race-scoreboard'); if(!board) return;
+  board.innerHTML=`<div class="race-score-row you"><span>${state.avatar} ${state.username} (You)</span><span id="race-you-clicks">0 clicks</span></div>`;
+  raceBots.forEach((bot,i)=>{
+    const row=document.createElement('div'); row.classList.add('race-score-row','bot');
+    row.innerHTML=`<span>${bot.avatar} ${bot.name}</span><span id="race-bot-clicks-${i}">0 clicks</span>`;
+    board.appendChild(row);
+  });
+}
+
+function updateRaceScoreboard() {
+  const e=document.getElementById('race-you-clicks'); if(e) e.textContent=racePlayerClicks+' clicks';
+  raceBots.forEach((bot,i)=>{const b=document.getElementById('race-bot-clicks-'+i); if(b) b.textContent=bot.clicks+' clicks';});
+}
+
+function endRace() {
+  raceActive=false;
+  clearInterval(raceTimerInterval);
+  raceBotIntervals.forEach(clearInterval); raceBotIntervals=[];
+  document.getElementById('race-arena').classList.add('hidden');
+  document.getElementById('race-result').classList.remove('hidden');
+  const topBot=Math.max(...raceBots.map(b=>b.clicks));
+  const won=racePlayerClicks>topBot;
+  const box=document.getElementById('race-result-box');
+  if(won){
+    state.racesWon++;
+    const reward=30+Math.floor(Math.random()*20);
+    state.coins+=reward; state.totalCoins+=reward;
+    if(!state.achievements.firstrace){state.achievements.firstrace=true; showAchievement('First Race Win! 🏁');}
+    box.className='race-result-box win';
+    box.innerHTML=`<h2>🏆 You Won!</h2><p>You tapped <b>${racePlayerClicks}</b> times.</p><p>You have officially beaten all the bots and won <b>${reward} coins</b>! 🪙</p>`;
+    const cp=document.getElementById('coin-popup');
+    if(cp){document.getElementById('coin-popup-amount').textContent=reward; cp.classList.remove('hidden');}
+    playSuccess(); launchConfetti();
+  } else {
+    box.className='race-result-box lose';
+    box.innerHTML=`<h2>😔 You Lost!</h2><p>You tapped <b>${racePlayerClicks}</b> times, but a bot got <b>${topBot}</b>!</p><p>No auto-clickers — raw tapping only! 💪</p>`;
+    playError();
+  }
+  checkAchievements(); updateUI(); saveState();
+}
+
+const realNames=[
+  'ClickKing','TapQueen','SpeedDemon','FingerGod','ClickLord','NinjaTapper',
+  'UltraClick','HyperFinger','TapMaster','ClickWizard','SwiftFinger','TapLegend',
+  'ClickHero','NinjaPress','TurboTap','ClickNinja','MegaTap','PressMaster',
+  'TapWizard','ClickStorm','SwiftTap','PressingIt','FingerBlast','ClickFlash',
+  'TapBlitz','PressBoss','ClickForce','TapForce','SwiftPress','ClickPower',
+];
+
+function setupLeaderboard() {
+  document.querySelectorAll('.lb-tab').forEach(tab=>{
+    tab.addEventListener('click',()=>{
+      initAudio(); playClick();
+      document.querySelectorAll('.lb-tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+      renderLeaderboard(tab.dataset.tab);
+    });
+  });
+  const rb=document.getElementById('lb-reward-btn');
+  const rp=document.getElementById('lb-reward-panel');
+  const rc=document.getElementById('lb-reward-close');
+  if(rb) rb.addEventListener('click',()=>{playClick(); rp.classList.toggle('hidden');});
+  if(rc) rc.addEventListener('click',()=>{playClick(); rp.classList.add('hidden');});
+}
+
+function startLeaderboardTimer() {
+  function update(){
+    const now=new Date();
+    const next=new Date(now);
+    next.setDate(now.getDate()+((1+7-now.getDay())%7||7));
+    next.setHours(0,0,0,0);
+    const diff=next-now;
+    if(diff<=0){giveWeeklyRewards(); return;}
+    const d=Math.floor(diff/86400000);
+    const h=Math.floor((diff%86400000)/3600000);
+    const m=Math.floor((diff%3600000)/60000);
+    const s=Math.floor((diff%60000)/1000);
+    const el=document.getElementById('lb-timer');
+    if(el) el.textContent=`${d}d ${h}h ${m}m ${s}s`;
+  }
+  update();
+  setInterval(update,1000);
+}
+
+function giveWeeklyRewards() {
+  const pos=Math.floor(Math.random()*5)+1;
+  const rewards={1:{coins:1000,clicks:1000},2:{coins:500,clicks:500},3:{coins:250,clicks:250},4:{coins:100,clicks:0},5:{coins:50,clicks:0}};
+  const r=rewards[pos]||{coins:0,clicks:0};
+  if(r.coins>0){state.coins+=r.coins; state.totalCoins+=r.coins;}
+  if(r.clicks>0){state.clicks+=r.clicks; state.totalClicks+=r.clicks;}
+  if(r.coins>0) showToast('🏆 Weekly reward! #'+pos+' → +'+r.coins+' coins!');
+  updateUI(); saveState();
+}
+
+function renderLeaderboard(type) {
+  const list=document.getElementById('lb-list'); if(!list) return;
+  const medals=['🥇','🥈','🥉'];
+  const playerVal=type==='clicks'?state.totalClicks:type==='coins'?state.totalCoins:state.racesWon;
+  const allNames=realNames.concat(Array.from({length:70},(_,i)=>'Player'+(1000+i))).slice(0,99);
+  let entries=allNames.map((name,i)=>({
+    name, isYou:false,
+    value:Math.max(0,(99-i)*(type==='races'?8:type==='coins'?420:2000)+Math.floor(Math.random()*300)),
+  }));
+  entries.push({name:state.username+' 👈',value:playerVal,isYou:true});
+  entries.sort((a,b)=>b.value-a.value);
+  entries=entries.slice(0,100);
+  list.innerHTML=entries.map((e,i)=>`
+    <div class="lb-row${e.isYou?' you':''}">
+      <span>${medals[i]||'#'+(i+1)}</span>
+      <span>${e.name}</span>
+      <span>${formatNum(e.value)}</span>
+    </div>`).join('');
+}
+
+function setupProfile() {
+  const editBtn=document.getElementById('btn-edit-profile');
+  const editor=document.getElementById('profile-editor');
+  const saveBtn=document.getElementById('save-profile-btn');
+  const cancelBtn=document.getElementById('cancel-edit-btn');
+  const errorEl=document.getElementById('edit-error');
+  const inputEl=document.getElementById('edit-username-input');
+  let selAvatar=state.avatar;
+
+  if(editBtn){
+    editBtn.addEventListener('click',()=>{
+      playClick(); selAvatar=state.avatar;
+      if(inputEl) inputEl.value=state.username;
+      document.querySelectorAll('.edit-avatar-grid .avatar-option').forEach(el=>{
+        el.classList.toggle('selected',el.dataset.avatar===state.avatar);
+      });
+      editor.classList.remove('hidden');
+      editBtn.classList.add('hidden');
+      if(errorEl) errorEl.classList.add('hidden');
+    });
+  }
+
+  document.querySelectorAll('.edit-avatar-grid .avatar-option').forEach(el=>{
+    el.addEventListener('click',()=>{
+      document.querySelectorAll('.edit-avatar-grid .avatar-option').forEach(a=>a.classList.remove('selected'));
+      el.classList.add('selected'); selAvatar=el.dataset.avatar; playClick();
+    });
+  });
+
+  if(saveBtn){
+    saveBtn.addEventListener('click',()=>{
+      initAudio();
+      const newName=inputEl?inputEl.value.trim():'';
+      if(!newName||newName.length<2){showToast('Username must be at least 2 chars!'); return;}
+      if(newName!==state.username&&state.takenUsernames.includes(newName)){
+        if(errorEl) errorEl.classList.remove('hidden'); playError(); return;
+      }
+      state.takenUsernames=state.takenUsernames.filter(n=>n!==state.username);
+      state.username=newName;
+      if(!state.takenUsernames.includes(newName)) state.takenUsernames.push(newName);
+      state.avatar=selAvatar;
+      if(errorEl) errorEl.classList.add('hidden');
+      editor.classList.add('hidden');
+      if(editBtn) editBtn.classList.remove('hidden');
+      playSuccess(); showToast('✅ Profile updated!');
+      updateUI(); saveState();
+    });
+  }
+
+  if(cancelBtn){
+    cancelBtn.addEventListener('click',()=>{
+      playClick(); editor.classList.add('hidden');
+      if(editBtn) editBtn.classList.remove('hidden');
+      if(errorEl) errorEl.classList.add('hidden');
+    });
+  }
+}
+
+window.addEventListener('load',()=>{
+  initBackground();
+  const hasSave=loadState();
+  runLoadingScreen(()=>{
+    document.getElementById('loading-screen').classList.add('hidden');
+    if(hasSave){
+      showGame();
+      setTimeout(()=>{initAudio(); startLofi();},500);
+    } else {
+      showSetup();
+    }
