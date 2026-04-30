@@ -25,13 +25,57 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
   height: 100%;
-  font-family: 'Nunito', sans-serif;
+  /* Emoji-safe font stack — system emoji fonts always load before web fonts */
+  font-family: 'Nunito', "Apple Color Emoji", "Segoe UI Emoji",
+               "Noto Color Emoji", "Twemoji Mozilla", sans-serif;
   background: var(--bg);
   color: var(--text);
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
 }
+
+/* Force emoji rendering everywhere — prevents hollow rectangle fallback */
+.stat-chip,
+.click-btn,
+.exchange-row,
+.upgrade-card,
+.minigame-card,
+.quest-item,
+.daily-reward-box,
+.toast,
+.click-pop,
+.achievement-popup,
+.race-bot-card,
+.race-result-box,
+.coin-popup,
+.lb-row,
+.badge,
+.rain-item,
+.mem-btn,
+.nav-btn,
+.avatar-option,
+.profile-card,
+.profile-avatar {
+  font-family: 'Nunito', "Apple Color Emoji", "Segoe UI Emoji",
+               "Noto Color Emoji", "Twemoji Mozilla", sans-serif;
+}
+
+/* Headings keep Fredoka but still fall back to emoji fonts */
+h1, h2, h3,
+.game-title,
+.click-label,
+.stat-chip,
+.lb-timer,
+.race-timer,
+.mg-timer,
+.coin-popup,
+.profile-name,
+.stat-val {
+  font-family: 'Fredoka One', "Apple Color Emoji", "Segoe UI Emoji",
+               "Noto Color Emoji", cursive;
+}
+
 .hidden { display: none !important; }
 
 /* ============================================
@@ -226,6 +270,8 @@ html, body {
   aspect-ratio: 1;
   padding: 3px;
   line-height: 1;
+  /* ensure emoji renders correctly in avatar grid */
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
 }
 .avatar-option:hover    { transform: scale(1.15); }
 .avatar-option.selected { border-color: var(--primary); background: #f3e8ff; }
@@ -261,11 +307,16 @@ html, body {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Fredoka One', "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", cursive;
   font-size: 1rem;
   color: white;
 }
-.chip-icon { font-size: 0.9rem; }
+.chip-icon {
+  font-size: 1rem;
+  /* dedicated emoji font for the coin/click icons in the top bar */
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  line-height: 1;
+}
 .logo-small {
   background: rgba(255,255,255,0.2);
   border-radius: 50%;
@@ -372,6 +423,8 @@ html, body {
   border-radius: 99px;
   padding: 7px 16px;
   box-shadow: var(--shadow);
+  /* emoji font for the 🪙 in "10 clicks = 1 🪙" */
+  font-family: 'Nunito', "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
 }
 .exchange-info { font-size: 0.82rem; font-weight: 700; color: var(--text); }
 .btn-exchange {
@@ -391,7 +444,7 @@ html, body {
 /* CLICK POP */
 .click-pop {
   position: fixed;
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Fredoka One', "Apple Color Emoji", "Segoe UI Emoji", cursive;
   font-size: 1.3rem;
   color: var(--primary-dark);
   pointer-events: none;
@@ -427,8 +480,14 @@ html, body {
   color: var(--text-light);
   font-size: 1.15rem;
   flex: 1;
+  /* emoji font for nav icons */
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
 }
-.nav-btn small { font-size: 0.56rem; font-weight: 700; }
+.nav-btn small {
+  font-size: 0.56rem;
+  font-weight: 700;
+  font-family: 'Nunito', sans-serif;
+}
 .nav-btn.active { color: var(--primary-dark); background: #f3e8ff; }
 .nav-btn:active { background: #ede9fe; }
 
@@ -457,7 +516,7 @@ html, body {
   flex-shrink: 0;
 }
 .panel-header h2 {
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Fredoka One', "Apple Color Emoji", "Segoe UI Emoji", cursive;
   color: white;
   font-size: 1.15rem;
 }
@@ -481,7 +540,10 @@ html, body {
   box-shadow: var(--shadow);
 }
 .upgrade-info { flex: 1; min-width: 0; }
-.upgrade-info h3 { font-size: 0.88rem; color: var(--text); font-weight: 800; }
+.upgrade-info h3 {
+  font-size: 0.88rem; color: var(--text); font-weight: 800;
+  font-family: 'Nunito', "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+}
 .upgrade-info p  { font-size: 0.73rem; color: var(--text-light); margin: 2px 0 3px; }
 .upgrade-level   { font-size: 0.7rem; color: var(--primary); font-weight: 700; }
 .btn-upgrade {
@@ -494,7 +556,11 @@ html, body {
   flex-shrink: 0;
 }
 .btn-upgrade:active { transform: scale(0.93); }
-.upgrade-cost { font-family: 'Fredoka One', cursive; color: white; font-size: 0.85rem; }
+.upgrade-cost {
+  font-family: 'Fredoka One', "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", cursive;
+  color: white;
+  font-size: 0.85rem;
+}
 
 /* MINI-GAMES */
 .minigame-card {
@@ -506,11 +572,18 @@ html, body {
   gap: 11px;
   box-shadow: var(--shadow);
 }
-.mg-icon { font-size: 1.8rem; flex-shrink: 0; }
+.mg-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
 .mg-info { flex: 1; min-width: 0; }
 .mg-info h3  { font-size: 0.9rem; font-weight: 800; color: var(--text); }
 .mg-subtitle { font-size: 0.72rem; color: var(--text-light); margin: 2px 0 4px; line-height: 1.4; }
-.mg-reward   { font-size: 0.7rem; color: var(--primary); font-weight: 700; }
+.mg-reward   {
+  font-size: 0.7rem; color: var(--primary); font-weight: 700;
+  font-family: 'Nunito', "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+}
 .btn-play {
   background: linear-gradient(135deg, var(--primary), var(--accent));
   color: white;
@@ -534,9 +607,15 @@ html, body {
   text-align: center;
   box-shadow: var(--shadow);
 }
-.daily-reward-box h3 { font-family: 'Fredoka One', cursive; font-size: 1.05rem; color: var(--primary-dark); margin-bottom: 4px; }
+.daily-reward-box h3 {
+  font-family: 'Fredoka One', "Apple Color Emoji", "Segoe UI Emoji", cursive;
+  font-size: 1.05rem; color: var(--primary-dark); margin-bottom: 4px;
+}
 .daily-reward-box p  { font-size: 0.78rem; color: var(--text-light); margin-bottom: 10px; }
-.streak-info { display: block; margin-top: 8px; font-size: 0.78rem; font-weight: 700; color: var(--primary-dark); }
+.streak-info {
+  display: block; margin-top: 8px; font-size: 0.78rem; font-weight: 700; color: var(--primary-dark);
+  font-family: 'Nunito', "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+}
 .quest-list h3 { font-family: 'Fredoka One', cursive; font-size: 0.95rem; color: var(--text); margin-bottom: 7px; }
 .quest-item {
   background: var(--card);
@@ -548,7 +627,10 @@ html, body {
   box-shadow: var(--shadow);
   margin-bottom: 7px;
 }
-.quest-name     { flex: 1; font-size: 0.8rem; font-weight: 700; color: var(--text); }
+.quest-name     {
+  flex: 1; font-size: 0.8rem; font-weight: 700; color: var(--text);
+  font-family: 'Nunito', "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+}
 .quest-progress { font-size: 0.72rem; color: var(--text-light); white-space: nowrap; }
 .btn-claim-quest {
   background: var(--primary);
@@ -584,7 +666,10 @@ html, body {
   gap: 10px;
   box-shadow: var(--shadow);
 }
-.race-bot-avatar { font-size: 1.4rem; flex-shrink: 0; }
+.race-bot-avatar {
+  font-size: 1.4rem; flex-shrink: 0;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
 .race-bot-name   { font-weight: 800; font-size: 0.85rem; color: var(--text); }
 .race-bot-speed  { font-size: 0.7rem; color: var(--text-light); }
 .race-timer-wrap {
@@ -611,6 +696,7 @@ html, body {
   box-shadow: var(--shadow);
   font-weight: 700;
   font-size: 0.82rem;
+  font-family: 'Nunito', "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
 }
 .race-score-row.you { border-left: 4px solid var(--primary); }
 .race-score-row.bot { border-left: 4px solid var(--accent); }
@@ -621,7 +707,7 @@ html, body {
   color: white;
   border: none;
   border-radius: var(--radius);
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Fredoka One', "Apple Color Emoji", "Segoe UI Emoji", cursive;
   font-size: 1.5rem;
   cursor: pointer;
   box-shadow: 0 4px 20px rgba(167,139,250,0.4);
@@ -636,13 +722,19 @@ html, body {
   box-shadow: var(--shadow);
   margin-bottom: 12px;
 }
-.race-result-box h2 { font-family: 'Fredoka One', cursive; font-size: 1.4rem; margin-bottom: 8px; }
-.race-result-box p  { font-size: 0.82rem; color: var(--text-light); margin-bottom: 4px; line-height: 1.6; }
+.race-result-box h2 {
+  font-family: 'Fredoka One', "Apple Color Emoji", "Segoe UI Emoji", cursive;
+  font-size: 1.4rem; margin-bottom: 8px;
+}
+.race-result-box p  {
+  font-size: 0.82rem; color: var(--text-light); margin-bottom: 4px; line-height: 1.6;
+  font-family: 'Nunito', "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+}
 .race-result-box.win  h2 { color: #16a34a; }
 .race-result-box.lose h2 { color: #dc2626; }
 .coin-popup {
   text-align: center;
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Fredoka One', "Apple Color Emoji", "Segoe UI Emoji", cursive;
   font-size: 1.4rem;
   color: #d97706;
   margin-bottom: 10px;
@@ -689,6 +781,7 @@ html, body {
   font-size: 0.8rem;
   font-weight: 800;
   color: var(--primary-dark);
+  font-family: 'Nunito', "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
 }
 .lb-timer {
   font-family: 'Fredoka One', cursive;
@@ -707,8 +800,15 @@ html, body {
   box-shadow: var(--shadow);
   flex-shrink: 0;
 }
-.lb-reward-panel h3 { font-family: 'Fredoka One', cursive; font-size: 0.95rem; color: var(--primary-dark); margin-bottom: 8px; }
-.lb-reward-row { font-size: 0.8rem; font-weight: 700; color: var(--text); padding: 5px 0; border-bottom: 1px solid #f3e8ff; }
+.lb-reward-panel h3 {
+  font-family: 'Fredoka One', "Apple Color Emoji", "Segoe UI Emoji", cursive;
+  font-size: 0.95rem; color: var(--primary-dark); margin-bottom: 8px;
+}
+.lb-reward-row {
+  font-size: 0.8rem; font-weight: 700; color: var(--text); padding: 5px 0;
+  border-bottom: 1px solid #f3e8ff;
+  font-family: 'Nunito', "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+}
 .lb-reward-row:last-of-type { border-bottom: none; }
 .btn-close-panel {
   margin-top: 8px;
@@ -754,6 +854,7 @@ html, body {
   margin-bottom: 5px;
   font-weight: 700;
   font-size: 0.82rem;
+  font-family: 'Nunito', "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
 }
 .lb-row.you { border-left: 4px solid var(--primary); background: #f3e8ff; }
 .lb-row span:first-child  { flex-shrink: 0; width: 26px; font-size: 0.82rem; }
@@ -768,7 +869,10 @@ html, body {
   text-align: center;
   box-shadow: var(--shadow);
 }
-.profile-avatar { font-size: 3rem; margin-bottom: 5px; line-height: 1.2; }
+.profile-avatar {
+  font-size: 3rem; margin-bottom: 5px; line-height: 1.2;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
 .profile-name   { font-family: 'Fredoka One', cursive; font-size: 1.15rem; color: var(--primary-dark); }
 .profile-level  { font-size: 0.78rem; color: var(--primary); font-weight: 700; margin-top: 3px; }
 .btn-edit-profile {
@@ -777,7 +881,7 @@ html, body {
   border: 2px solid var(--primary);
   border-radius: 99px;
   padding: 5px 16px;
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Nunito', "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
   font-weight: 800;
   font-size: 0.8rem;
   color: var(--primary-dark);
@@ -847,7 +951,7 @@ html, body {
 
 /* ACHIEVEMENTS */
 .achievements-section h3 {
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Fredoka One', "Apple Color Emoji", "Segoe UI Emoji", cursive;
   font-size: 0.95rem;
   color: var(--text);
   margin-bottom: 8px;
@@ -863,6 +967,8 @@ html, body {
   padding: 12px 6px 8px;
   text-align: center;
   font-size: 1.6rem;
+  /* emoji font so badge icons render correctly */
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
   box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
@@ -879,6 +985,7 @@ html, body {
   color: var(--text-light);
   line-height: 1.2;
   display: block;
+  font-family: 'Nunito', sans-serif;
 }
 .badge.locked   { filter: grayscale(1); opacity: 0.38; }
 .badge.unlocked {
@@ -889,7 +996,7 @@ html, body {
 .badge.unlocked:active { transform: scale(1.07); }
 
 /* ============================================
-   MINI-GAME MODALS — always perfectly centered
+   MINI-GAME MODALS
    ============================================ */
 .modal {
   position: fixed;
@@ -920,10 +1027,16 @@ html, body {
   from { transform: scale(0.88); opacity: 0; }
   to   { transform: scale(1);    opacity: 1; }
 }
-.modal-box h2   { font-family: 'Fredoka One', cursive; font-size: 1.25rem; color: var(--primary-dark); margin-bottom: 4px; }
+.modal-box h2   {
+  font-family: 'Fredoka One', "Apple Color Emoji", "Segoe UI Emoji", cursive;
+  font-size: 1.25rem; color: var(--primary-dark); margin-bottom: 4px;
+}
 .modal-subtitle { font-size: 0.78rem; color: var(--text-light); margin-bottom: 10px; line-height: 1.4; }
 .mg-timer       { font-family: 'Fredoka One', cursive; font-size: 2.8rem; color: var(--primary); margin: 6px 0; }
-.mg-score       { font-size: 0.92rem; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+.mg-score       {
+  font-size: 0.92rem; font-weight: 700; color: var(--text); margin-bottom: 10px;
+  font-family: 'Nunito', "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+}
 .btn-close {
   position: absolute;
   top: 9px; right: 10px;
@@ -947,6 +1060,7 @@ html, body {
   font-size: 0.85rem;
   margin-bottom: 8px;
   color: var(--text);
+  font-family: 'Nunito', "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
 }
 .rain-arena {
   width: 100%;
@@ -964,6 +1078,8 @@ html, body {
   cursor: pointer;
   user-select: none;
   touch-action: none;
+  /* critical: emoji font for falling coins and bombs */
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
 }
 
 /* Memory */
@@ -1010,6 +1126,7 @@ html, body {
   text-overflow: ellipsis;
   animation: toast-in 0.22s ease;
   box-shadow: 0 4px 20px rgba(124,58,237,0.35);
+  font-family: 'Nunito', "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
 }
 @keyframes toast-in {
   from { opacity: 0; transform: translateX(-50%) translateY(8px); }
@@ -1025,7 +1142,7 @@ html, body {
   border: none;
   border-radius: 99px;
   padding: 11px 22px;
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Nunito', "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
   font-weight: 800;
   font-size: 0.92rem;
   cursor: pointer;
